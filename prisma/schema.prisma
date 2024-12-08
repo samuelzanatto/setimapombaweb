@@ -19,8 +19,20 @@ model User {
   password  String
   name      String?
   email     String?  @unique
+  cargoId   Int?
+  cargo     Cargo?   @relation(fields: [cargoId], references: [id])
+  online    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  cultosComoPastor    Culto[]  @relation("pastor")
+  cultosComoObreiro   Culto[]  @relation("obreiro")
+  cultosComoAuxiliar  Culto[]  @relation("auxiliares")
+  cultosComoLiderCantico Culto[]  @relation("liderCantico")
+  cultosComoVocal     Culto[]  @relation("vocal")
+  reunioesResponsavel Reuniao[] @relation("responsavel")
+  ensaiosResponsavel  Ensaio[]  @relation("responsavel")
+  participaEnsaios    Ensaio[]  @relation("participantes")
 
   @@map("users")
   @@index([username])
@@ -37,7 +49,6 @@ model Live {
   updatedAt   DateTime @updatedAt
 
   leituras       Leitura[]
-  mensagens      Mensagem[]
   pedidosOracao  PedidoOracao[]
   viewerSessions ViewerSession[]
 
@@ -53,17 +64,6 @@ model Leitura {
   createdAt DateTime @default(now())
 
   @@map("leituras")
-}
-
-model Mensagem {
-  id       Int      @id @default(autoincrement())
-  usuario  String
-  texto    String
-  liveId   Int
-  live     Live     @relation(fields: [liveId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@map("mensagens")
 }
 
 model PedidoOracao {
@@ -88,4 +88,142 @@ model ViewerSession {
   endedAt   DateTime?
 
   @@map("viewer_sessions")
+}
+
+model Cargo {
+  id    Int     @id @default(autoincrement())
+  nome  String  @unique
+  users User[]
+
+  @@map("cargos")
+}
+
+model Local {
+  id          Int       @id @default(autoincrement())
+  nome        String
+  latitude    Float
+  longitude   Float
+  cultos      Culto[]
+  reunioes    Reuniao[]
+  ensaios     Ensaio[]
+  eventos     Evento[]
+
+  @@map("locais")
+}
+
+model Culto {
+  id            Int      @id @default(autoincrement())
+  titulo        String
+  dataInicio    DateTime
+  dataTermino   DateTime
+  localId       Int
+  local         Local    @relation(fields: [localId], references: [id])
+  status        String   // agendado, em_andamento, concluido
+  pastorId      Int
+  pastor        User     @relation("pastor", fields: [pastorId], references: [id])
+  obreiroId     Int
+  obreiro       User     @relation("obreiro", fields: [obreiroId], references: [id])
+  auxiliares    User[]   @relation("auxiliares")
+  liderCantico  User     @relation("liderCantico", fields: [liderCanticoId], references: [id])
+  liderCanticoId Int
+  vocal         User[]   @relation("vocal")
+  videoUrl      String?
+  hinos         Hino[]
+  mensagens     Mensagem[]
+  leituras      LeituraBiblica[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("cultos")
+}
+
+model Reuniao {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  dataHora    DateTime
+  localId     Int
+  local       Local    @relation(fields: [localId], references: [id])
+  status      String   // agendado, em_andamento, concluido
+  responsavelId Int
+  responsavel User     @relation("responsavel", fields: [responsavelId], references: [id])
+  materiais   String
+  cronograma  String
+  informacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reunioes")
+}
+
+model Ensaio {
+  id            Int      @id @default(autoincrement())
+  titulo        String
+  dataHora      DateTime
+  localId       Int
+  local         Local    @relation(fields: [localId], references: [id])
+  status        String   // agendado, em_andamento, concluido
+  responsavelId Int
+  responsavel   User     @relation("responsavel", fields: [responsavelId], references: [id])
+  participantes User[]   @relation("participantes")
+  hinos         Hino[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("ensaios")
+}
+
+model Evento {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  dataHora    DateTime
+  localId     Int
+  local       Local    @relation(fields: [localId], references: [id])
+  status      String   // agendado, em_andamento, concluido
+  cronograma  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("eventos")
+}
+
+model Mensagem {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  data        DateTime
+  cidade      String
+  estado      String
+  pais        String
+  traduzidoPor String?
+  conteudo    String     // Array de páginas com parágrafos
+  pdfUrl      String?
+  cultos      Culto[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("mensagens")
+}
+
+model Hino {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  autor     String
+  letra     String
+  cultos    Culto[]
+  ensaios   Ensaio[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("hinos")
+}
+
+model LeituraBiblica {
+  id        Int      @id @default(autoincrement())
+  livro     String
+  capitulo  Int
+  versiculos String
+  cultos    Culto[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("leituras_biblicas")
 }

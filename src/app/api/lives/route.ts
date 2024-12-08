@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { cache } from '@/lib/cache';
 
 const youtube = google.youtube({
   version: 'v3',
@@ -7,6 +8,14 @@ const youtube = google.youtube({
 
 export async function GET() {
   try {
+    const CACHE_KEY = 'youtube-lives'
+    const cachedData = cache.get(CACHE_KEY)
+    
+    if (cachedData) {
+      console.log('Retornando dados do cache')
+      return Response.json(cachedData)
+    }
+
     console.log('Iniciando busca de transmissões...');
     
     // Busca por todas as transmissões (ativas e agendadas)
@@ -36,6 +45,7 @@ export async function GET() {
       eventType: 'completed',
       type: ['video'],
       order: 'date',
+      maxResults: 50
     });
 
     console.log('Resposta completed:', completedResponse.data);
@@ -180,7 +190,9 @@ export async function GET() {
 
     console.log('Lives processadas:', lives);
 
-    return Response.json({ lives });
+    const result = { lives }
+    cache.set(CACHE_KEY, result)
+    return Response.json(result)
 
   } catch (error) {
     console.error('Erro na API:', error);

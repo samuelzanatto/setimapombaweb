@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
 import {
   Pagination,
   PaginationContent,
@@ -14,6 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Badge } from '@/components/ui/badge'
+import { useLives } from '@/hooks/useLives'
 
 interface Live {
   id: string
@@ -37,35 +37,28 @@ const getStatusLabel = (status: Live['status']) => {
   }
 }
 
-export default function ServicesManager() {
-  const [lives, setLives] = useState<Live[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function ServiceManager() {
+  const { lives, isLoading, error } = useLives()
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 9 // 3x3 grid
+  const itemsPerPage = 12
 
-  useEffect(() => {
-    async function fetchLives() {
-      try {
-        const data = await fetchWithAuth('/api/lives')
-        console.log('Dados recebidos:', data)
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  )
 
-        if (data.error) {
-          throw new Error(data.error)
-        }
+  if (error) return (
+    <div className="text-center text-destructive p-4">
+      Erro ao carregar transmissões: {error.message}
+    </div>
+  )
 
-        setLives(data.lives || [])
-        setError(null)
-      } catch (error) {
-        console.error('Erro ao buscar lives:', error)
-        setError(error instanceof Error ? error.message : 'Erro desconhecido')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLives()
-  }, [])
+  if (lives.length === 0) return (
+    <div className="text-center p-4">
+      Nenhuma transmissão encontrada
+    </div>
+  )
 
   const totalPages = Math.ceil(lives.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -73,10 +66,11 @@ export default function ServicesManager() {
   const currentLives = lives.slice(startIndex, endIndex)
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
   }
 
-  if (loading) return <div>Carregando...</div>
   if (error) return <div>Erro: {error}</div>
   if (lives.length === 0) return <div>Nenhuma transmissão ao vivo encontrada</div>
 
@@ -84,10 +78,10 @@ export default function ServicesManager() {
     <main>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-6">Transmissões ao Vivo</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {currentLives.map((live) => (
             <Link href={`/dashboard/administrativo/${live.id}`} key={live.id}>
-              <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="flex flex-col justify-between border rounded-lg h-96 overflow-hidden hover:shadow-lg transition-shadow">
                 <Image
                   src={live.thumbnail}
                   alt={live.title}
@@ -97,7 +91,6 @@ export default function ServicesManager() {
                 />
                 <div className="p-4">
                   <h2 className="font-semibold">{live.title}</h2>
-                  <p className="text-sm text-gray-600 mt-2">{live.description}</p>
                 </div>
                 <div className='p-4'>
                   <Badge variant={live.status as 'live' | 'upcoming' | 'completed'}>

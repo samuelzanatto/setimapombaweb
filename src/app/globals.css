@@ -2,9 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@media print {
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+}
 
 ::-webkit-scrollbar {
   display: none;

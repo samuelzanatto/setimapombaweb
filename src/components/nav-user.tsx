@@ -26,21 +26,28 @@ import {
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
-  const { logout } = useAuth()
+export function NavUser() {
+  const { user, logout, checkAuth } = useAuth()
   const router = useRouter()
   const { isMobile } = useSidebar()
 
-  const handleLogout = () => {
+  useEffect(() => {
+    console.log('NavUser mounted, checking auth...')
+    checkAuth()
+  }, [checkAuth])
+
+  console.log('NavUser render:', { user })
+
+  if (!user?.id) {
+    console.log('No user found in NavUser')
+    return null
+  }
+
+  const userInitials = user.username[0].toUpperCase()
+
+  const handleLogout = async () => {
     logout()
     router.push('/login')
   }
@@ -55,12 +62,12 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg uppercase">{user.name[0]}</AvatarFallback>
+                <AvatarImage src={user?.avatar_url} alt={user?.name} />
+                <AvatarFallback className="rounded-lg uppercase">{userInitials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-semibold">{user?.name || 'Usuário'}</span>
+                <span className="truncate text-xs">{user?.email || ''}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -74,12 +81,12 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={user?.avatar_url} alt={user?.name} />
+                  <AvatarFallback className="rounded-lg">{userInitials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">{user?.name || 'Usuário'}</span>
+                  <span className="truncate text-xs">{user?.email || ''}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

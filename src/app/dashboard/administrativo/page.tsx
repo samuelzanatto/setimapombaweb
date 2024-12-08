@@ -4,8 +4,14 @@ import {
     TabsList, 
     TabsTrigger 
 } from "@/components/ui/tabs"
-import EventsManager from "./components/servicesManager"
-import UsersManager from "./components/usersManager"
+import ServiceManager from "./components/serviceManager"
+import UserManager from "./components/usersManager"
+import EventManager from "./components/eventManager"
+import ScheduleManager from "./components/scheduleManager/scheduleManager"
+import BookManager from "./components/bookManager"
+import MusicManager from "./components/musicManager"
+import RoleManager from "./components/roleManager"
+import LocalManager from "./components/localManager"
 
 export default function AdministrativoPage() {
     return (
@@ -14,16 +20,40 @@ export default function AdministrativoPage() {
                 <header>
                     <TabsList>
                         <TabsTrigger value="cultos">Cultos</TabsTrigger>
+                        <TabsTrigger value="agenda">Agenda</TabsTrigger>
+                        <TabsTrigger value="eventos">Eventos</TabsTrigger>
+                        <TabsTrigger value="locais">Locais</TabsTrigger>
+                        <TabsTrigger value="mensagens">Mensagens</TabsTrigger>
+                        <TabsTrigger value="hinos">Hinos</TabsTrigger>
+                        <TabsTrigger value="cargos">Cargos</TabsTrigger>
                         <TabsTrigger value="usuarios">Usuários</TabsTrigger>
                   </TabsList>
                 </header>
 
                 <article className="w-full">
                     <TabsContent value="cultos">
-                        <EventsManager />
+                        <ServiceManager />
+                    </TabsContent>
+                    <TabsContent value="agenda">
+                        <ScheduleManager />
+                    </TabsContent>
+                    <TabsContent value="eventos">
+                        <EventManager />
+                    </TabsContent>
+                    <TabsContent value="mensagens">
+                        <BookManager />
+                    </TabsContent>
+                    <TabsContent value="hinos">
+                        <MusicManager />
+                    </TabsContent>
+                    <TabsContent value="cargos">
+                        <RoleManager />
                     </TabsContent>
                     <TabsContent value="usuarios">
-                        <UsersManager />
+                        <UserManager />
+                    </TabsContent>
+                    <TabsContent value="locais">
+                        <LocalManager />
                     </TabsContent>
                 </article>
             </Tabs>

@@ -21,6 +21,8 @@ interface ServerToClientEvents {
   'new-pedido': (pedido: Pedido) => void
   'error': (message: string) => void
   'user-status-change': (data: { userId: number; online: boolean }) => void
+  'user-connected': (userId: number) => void
+  'user-disconnected': (userId: number) => void
 }
 
 interface ClientToServerEvents {
@@ -33,18 +35,14 @@ interface ClientToServerEvents {
   'user-disconnect': (userId: number) => void
 }
 
-export const socket = io<ServerToClientEvents, ClientToServerEvents>(
-  process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001',
-  {
-    autoConnect: true,
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    timeout: 10000,
-    transports: ['websocket', 'polling'],
-    path: '/socket.io',
-  }
-)
+export const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+  autoConnect: false,
+  reconnection: true,
+  reconnectionAttempts: Infinity, // Alterar para tentar reconectar indefinidamente
+  reconnectionDelay: 1000,
+  timeout: 10000,
+  transports: ['websocket'],
+})
 
 let reconnectAttempts = 0
 

@@ -14,11 +14,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { VideoPlayer } from '../components/VideoPlayer'
-import { useRouter } from 'next/navigation'
 import { socket } from '@/lib/socketClient'
 
 export default function DashboardPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
   const [currentLiveId, setCurrentLiveId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [embedError, setEmbedError] = useState(false)
@@ -61,13 +59,6 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
       socket.emit('leave-live', params.id)
     }
   }, [params.id])
-
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      router.push('/login')
-    }
-  }, [router])
 
   const fazerPedidoOracao = () => {
     if (novoPedidoPara.trim() && novoPedidoMotivo.trim()) {
@@ -153,7 +144,9 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">
             {isLoading ? (
-              <div>Carregando...</div>
+              <div className="flex items-center justify-center aspect-video mb-4 border rounded-lg">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
             ) : currentLiveId ? (
               <div className='mb-4'>
                 <VideoPlayer 
@@ -165,7 +158,7 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
             ) : (
               <div className="flex text-center aspect-video items-center mb-4 justify-center border rounded-lg">
                 <h2 className="text-xl font-semibold">
-                  Nenhuma transmissão ao vivo no momento
+                  Nenhuma transmissão ao vivo acontecendo no momento...
                 </h2>
               </div>
             )}

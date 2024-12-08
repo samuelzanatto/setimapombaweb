@@ -10,7 +10,14 @@ export async function GET() {
         username: true,
         name: true,
         email: true,
-        createdAt: true
+        createdAt: true,
+        online: true,
+        cargo: {
+          select: {
+            id: true,
+            nome: true
+          }
+        }
       }
     })
     return NextResponse.json(users)
@@ -27,6 +34,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({
       data: {
         ...data,
+        cargoId: data.cargoId ? Number(data.cargoId) : undefined,
         password: hashedPassword
       }
     })

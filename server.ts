@@ -2,16 +2,25 @@ import { createServer } from 'http'
 import { parse } from 'url'
 import next from 'next'
 import { Server } from 'socket.io'
+import { initSocket } from './src/lib/socket'
 
 const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev })
+const hostname = 'localhost'
+const port = parseInt(process.env.PORT || '3001', 10)
+
+const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
-const port = process.env.PORT || 3001
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
-    const parsedUrl = parse(req.url!, true)
-    handle(req, res, parsedUrl)
+    try {
+      const parsedUrl = parse(req.url!, true)
+      handle(req, res, parsedUrl)
+    } catch (err) {
+      console.error('Error occurred handling', req.url, err)
+      res.statusCode = 500
+      res.end('Internal server error')
+    }
   })
 
   const io = new Server(server, {
@@ -37,7 +46,9 @@ app.prepare().then(() => {
     })
   })
 
+  initSocket(server)
+
   server.listen(port, () => {
-    console.log(`> Servidor pronto na porta ${port}`)
+    console.log(`> Servidor pronto em http://${hostname}:${port}`)
   })
 })

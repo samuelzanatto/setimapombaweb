@@ -7,8 +7,13 @@ import {
   Send,
   SquareTerminal,
   LayoutDashboard,
-  Folder,
-  BookMarked
+  BookMarked,
+  Calendar,
+  Music,
+  BookOpenText,
+  MicVocal,
+  MessageCircle,
+  Ticket
 } from "lucide-react"
 
 import Logo from "../../public/logo.png"
@@ -39,13 +44,43 @@ const data = {
     {
       title: "Cultos",
       url: "/dashboard/cultos",
-      icon: Folder,
+      icon: Calendar,
+      isActive: true,
+    },
+    {
+      title: "Reuniões",
+      url: "/dashboard/reunioes",
+      icon: MessageCircle,
+      isActive: true,
+    },
+    {
+      title: "Ensaios",
+      url: "/dashboard/ensaios",
+      icon: MicVocal,
+      isActive: true,
+    },
+    {
+      title: "Eventos",
+      url: "/dashboard/eventos",
+      icon: Ticket,
       isActive: true,
     },
     {
       title: "Biblia",
       url: "/dashboard/biblia",
       icon: BookMarked,
+      isActive: true,
+    },
+    {
+      title: "Mensagens",
+      url: "/dashboard/mensagens",
+      icon: BookOpenText,
+      isActive: true,
+    },
+    {
+      title: "Hinos",
+      url: "/dashboard/hinos",
+      icon: Music,
       isActive: true,
     },
     {

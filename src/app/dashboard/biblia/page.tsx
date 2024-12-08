@@ -4,14 +4,12 @@ import { useState, useEffect } from "react"
 import { Separator } from "@/components/ui/separator"
 import { 
     Tabs, 
-    TabsContent, 
     TabsList, 
     TabsTrigger 
 } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-import { fetchWithAuth } from "@/lib/fetchWithAuth"
 
 export default function BibliaPage() {
     const [books, setBooks] = useState<Book[]>([])
@@ -40,12 +38,18 @@ export default function BibliaPage() {
     useEffect(() => {
         if (selectedBook && selectedChapter) {
           async function loadVerses() {
-            const data = await fetchWithAuth(
-              `/api/bible/verses?book=${selectedBook}&chapter=${selectedChapter}`
-            )
-            if (data && data.verses) {
-              setVerses(data.verses)
-            } else {
+            try {
+              const response = await fetch(
+                `/api/bible/verses?book=${selectedBook}&chapter=${selectedChapter}`
+              )
+              const data = await response.json()
+              if (data) {
+                setVerses(data.verses)
+              } else {
+                setVerses([])
+              }
+            } catch (error) {
+              console.error('Erro ao carregar versículos:', error)
               setVerses([])
             }
           }

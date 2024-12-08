@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
+import { usePathname } from "next/navigation"
 
 import {
   Collapsible,
@@ -19,6 +20,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 export function NavMain({
   items,
@@ -34,15 +36,25 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const pathname = usePathname()
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
-            <SidebarMenuItem>
+            <SidebarMenuItem active={pathname === item.url}>
               <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
+              <Link 
+                  href={item.url}
+                  className={cn(
+                    "flex w-full items-center gap-2 p-2 rounded-md transition-colors",
+                    pathname === item.url 
+                      ? "bg-blue-950 hover:text-white hover:bg-blue-950" 
+                      : "hover:bg-gray-100"
+                  )}
+                >
                   <item.icon />
                   <span>{item.title}</span>
                 </Link>

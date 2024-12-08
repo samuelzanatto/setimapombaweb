@@ -4,17 +4,43 @@ import { prisma } from './prisma'
 
 export const initSocket = (server: NetServer) => {
   const io = new SocketIOServer(server)
+  const onlineUsers = new Map<string, number>()
 
   io.on('connection', (socket) => {
-    console.log('Cliente conectado:', socket.id)
+    console.log('[Socket Server] Novo cliente conectado:', socket.id)
 
     socket.on('user-connect', async (userId: number) => {
-      console.log('Usuário conectado:', userId)
-      io.emit('user-status-change', { userId, online: true })
+      console.log('[Socket Server] Usuário conectando:', userId)
+      onlineUsers.set(socket.id, userId)
+      
+      try {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { online: true }
+        })
+        
+        // Emitir para todos os clientes o status atualizado
+        io.emit('user-status-change', { userId, online: true })
+        
+        // Enviar lista de usuários online para o novo cliente
+        const onlineUserIds = Array.from(new Set(onlineUsers.values()))
+        onlineUserIds.forEach(id => {
+          socket.emit('user-status-change', { userId: id, online: true })
+        })
+      } catch (error) {
+        console.error('[Socket Server] Erro ao atualizar status:', error)
+      }
     })
   
     socket.on('user-disconnect', async (userId: number) => {
       console.log('Usuário desconectado:', userId)
+      onlineUsers.delete(socket.id)
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { online: false }
+      })
+
       io.emit('user-status-change', { userId, online: false })
     })
 
@@ -73,10 +99,24 @@ export const initSocket = (server: NetServer) => {
     })
 
     socket.on('disconnect', async () => {
-      await prisma.viewerSession.update({
-        where: { sessionId: socket.id },
-        data: { endedAt: new Date() }
-      })
+      const userId = onlineUsers.get(socket.id)
+      if (userId) {
+        console.log('[Socket Server] Usuário desconectado por timeout:', userId)
+        onlineUsers.delete(socket.id)
+        
+        try {
+          await prisma.user.update({
+            where: { id: userId },
+            data: { online: false }
+          })
+          console.log('[Socket Server] Status atualizado no DB para offline:', userId)
+          
+          io.emit('user-status-change', { userId, online: false })
+          console.log('[Socket Server] Evento user-status-change emitido:', { userId, online: false })
+        } catch (error) {
+          console.error('[Socket Server] Erro ao atualizar status offline:', error)
+        }
+      }
     })
   })
 

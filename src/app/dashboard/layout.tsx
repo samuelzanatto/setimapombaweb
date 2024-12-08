@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -21,6 +22,7 @@ export default function DashboardLayout({
         <SidebarTrigger className="" />
         {children}
       </main>
+      <Toaster />
       </div>
     </SidebarProvider>
   );

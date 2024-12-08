@@ -28,16 +28,9 @@ const formSchema = z.object({
 
 export default function LoginPage() {
     const router = useRouter()
-    const [loading, setLoading] = useState(false)
-    const { setAuth } = useAuth()
+    const { login } = useAuth()
     const { toast } = useToast()
-
-    useEffect(() => {
-      const token = localStorage.getItem('token')
-      if (token) {
-        router.push('/dashboard')
-      }
-    }, [router])
+    const [loading, setLoading] = useState(false)
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -50,31 +43,13 @@ export default function LoginPage() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
           setLoading(true)
-          const response = await fetch('/api/auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(values)
-          })
-  
-          const data = await response.json()
-  
-          if (!response.ok) {
-            toast({
-                variant: "destructive",
-                title: "Erro ao fazer login",
-                description: data.error,
-            })
-            return
-        }
-  
-          setAuth(data.user, data.token)
+          await login(values.username, values.password)
           router.push('/dashboard')
-  
         } catch (error) {
           toast({
             variant: "destructive",
             title: "Erro",
-            description: "Ocorreu um erro ao tentar fazer login",
+            description: "Credenciais inválidas",
           })
         } finally {
           setLoading(false)
