@@ -54,7 +54,7 @@ export default function ServiceManager() {
     </div>
   )
 
-  if (lives.length === 0) return (
+  if (!lives || lives.length === 0) return (
     <div className="text-center p-4">
       Nenhuma transmissão encontrada
     </div>
@@ -70,9 +70,6 @@ export default function ServiceManager() {
       setCurrentPage(page)
     }
   }
-
-  if (error) return <div>Erro: {error}</div>
-  if (lives.length === 0) return <div>Nenhuma transmissão ao vivo encontrada</div>
 
   return (
     <main>

@@ -82,6 +82,9 @@ export const VideoPlayer = ({ videoId, isLive = false }: VideoPlayerProps) => {
       bigPlayButton: !isLive,
       liveui: isLive,
       techOrder: ['youtube'],
+      responsive: true,
+      playsinline: true,
+      fill: true,
       sources: [{
         type: 'video/youtube',
         src: `https://www.youtube.com/watch?v=${videoId}`
@@ -120,6 +123,10 @@ export const VideoPlayer = ({ videoId, isLive = false }: VideoPlayerProps) => {
   }, [videoId, isLive])
 
   return (
-    <div ref={videoRef} className="w-full aspect-video" />
+    <div 
+    ref={videoRef} 
+    className="w-full aspect-video relative bg-black"
+    style={{ minHeight: '200px' }}
+  />
   )
 }

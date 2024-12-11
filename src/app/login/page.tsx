@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Button } from "@/components/ui/button"
@@ -28,7 +27,7 @@ const formSchema = z.object({
 
 export default function LoginPage() {
     const router = useRouter()
-    const { login } = useAuth()
+    const { login, checkAuth } = useAuth()
     const { toast } = useToast()
     const [loading, setLoading] = useState(false)
 
@@ -44,6 +43,7 @@ export default function LoginPage() {
         try {
           setLoading(true)
           await login(values.username, values.password)
+          await checkAuth()
           router.push('/dashboard')
         } catch (error) {
           toast({
@@ -57,12 +57,12 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="w-full h-screen flex items-center justify-center">
+        <main className="w-full min-h-screen flex items-center justify-center bg-neutral-950 p-4">
           <Toaster />
-            <div className="flex flex-col items-center justify-center bg-neutral-900 w-[30vw] h-[70vh] text-white rounded-2xl">
+            <div className="flex flex-col items-center justify-center bg-neutral-900 w-full max-w-md min-h-[500px] text-white rounded-2xl p-6">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-96">
-                    <h1 className="text-3xl font-bold text-center">LOGIN</h1>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full max-w-sm">
+                    <h1 className="text-2xl md:text-3xl font-bold text-center">LOGIN</h1>
                     <FormField
                       control={form.control}
                       name="username"

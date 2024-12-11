@@ -14,9 +14,10 @@
 }
 
 .video-js {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   border-radius: 1rem;
+  aspect-ratio: 16/9;
 }
 
 /* Player e vídeo */
@@ -33,6 +34,14 @@
 /* Container do YouTube */
 .vjs-youtube {
   border-radius: 1rem !important;
+}
+
+.vjs-tech {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Container do iframe */
@@ -70,6 +79,12 @@
 /* Mantém controles visíveis quando hover */
 .video-js:hover .vjs-control-bar {
   background: linear-gradient(to top, rgba(0,0,0,0.5), transparent) !important;
+}
+
+@media (max-width: 768px) {
+  .video-js {
+    min-height: 200px;
+  }
 }
 
 body {

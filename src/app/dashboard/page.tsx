@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { VideoPlayer } from '../components/VideoPlayer'
-import { socket } from '@/lib/socketClient'
 
 export default function DashboardPage({ params }: { params: { id: string } }) {
   const [currentLiveId, setCurrentLiveId] = useState<string | null>(null)
@@ -31,46 +30,6 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     setIsLiveActive(!!currentLiveId)
   }, [currentLiveId])
-
-  useEffect(() => {
-    socket.emit('join-live', params.id)
-
-    socket.on('viewer-count', (count) => {
-      setViewerCount(count)
-    })
-
-    socket.on('oferta-status', (status) => {
-      setOfertaAtiva(status)
-    })
-
-    socket.on('new-leitura', (leitura) => {
-      setLeituras((prev) => [...prev, leitura])
-    })
-
-    socket.on('new-pedido', (pedido) => {
-      setPedidosOracao((prev) => [...prev, pedido])
-    })
-
-    return () => {
-      socket.off('viewer-count')
-      socket.off('oferta-status')
-      socket.off('new-leitura')
-      socket.off('new-pedido')
-      socket.emit('leave-live', params.id)
-    }
-  }, [params.id])
-
-  const fazerPedidoOracao = () => {
-    if (novoPedidoPara.trim() && novoPedidoMotivo.trim()) {
-      socket.emit('pedido-oracao', {
-        liveId: params.id,
-        para: novoPedidoPara,
-        motivo: novoPedidoMotivo
-      })
-      setNovoPedidoPara('')
-      setNovoPedidoMotivo('')
-    }
-  }
 
   useEffect(() => {
     async function checkCurrentLive() {
@@ -141,8 +100,8 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
   return (
     <div className="h-[93vh] flex flex-col">
       <main className="h-full overflow-auto">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="col-span-1 md:col-span-2">
             {isLoading ? (
               <div className="flex items-center justify-center aspect-video mb-4 border rounded-lg">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />

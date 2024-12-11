@@ -70,6 +70,12 @@ export default function ReunioesPage() {
             </CardContent>
           </Card>
         ))}
+
+        {reunioes.length === 0 && (
+          <div className="col-span-full text-center py-6 text-muted-foreground">
+            Nenhuma reunião encontrada
+          </div>
+        )}
       </div>
     </main>
   )

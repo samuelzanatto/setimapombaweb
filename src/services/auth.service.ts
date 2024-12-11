@@ -13,7 +13,14 @@ class AuthService {
   private static instance: AuthService;
   private refreshTokenTimeout?: NodeJS.Timeout;
 
-  private constructor() {}
+  private constructor() {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+    }
+  }
 
   static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -22,12 +29,42 @@ class AuthService {
     return AuthService.instance;
   }
 
+  private getStorageItem(key: string): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(key);
+    }
+    return null;
+  }
+
+  private setStorageItem(key: string, value: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  }
+
+  private removeStorageItem(key: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  }
+
   async login(username: string, password: string) {
-    const response = await axios.post('/api/auth/login', { username, password });
-    const { user, accessToken, refreshToken } = response.data;
-    console.log('Login tokens:', { accessToken, refreshToken });
-    this.setTokens(accessToken, refreshToken);
-    return user;
+    try {
+      const response = await axios.post('/api/auth/login', { username, password });
+      const { user, accessToken, refreshToken } = response.data;
+      
+      // Armazenar tokens como cookies também
+      document.cookie = `accessToken=${accessToken}; path=/`;
+      document.cookie = `refreshToken=${refreshToken}; path=/`;
+      
+      // Armazenar no localStorage
+      this.setTokens(accessToken, refreshToken);
+      
+      return user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   }
 
   async refreshToken() {
@@ -43,8 +80,9 @@ class AuthService {
   }
 
   private setTokens(accessToken: string, refreshToken: string) {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    this.setStorageItem('accessToken', accessToken);
+    this.setStorageItem('refreshToken', refreshToken);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     this.startRefreshTokenTimer(accessToken);
   }
 
@@ -56,15 +94,15 @@ class AuthService {
   }
 
   logout() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    this.removeStorageItem('accessToken');
+    this.removeStorageItem('refreshToken');
     if (this.refreshTokenTimeout) {
       clearTimeout(this.refreshTokenTimeout);
     }
   }
 
   getAccessToken() {
-    return localStorage.getItem('accessToken');
+    return this.getStorageItem('accessToken');
   }
 }
 

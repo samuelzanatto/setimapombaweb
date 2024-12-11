@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { PlusIcon } from "lucide-react"
 
 interface Ensaio {
   id: number
@@ -47,13 +45,7 @@ export default function EnsaiosPage() {
   return (
     <main className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Ensaios</h1>
-        <Button asChild>
-          <Link href="/dashboard/ensaios/novo">
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Novo Ensaio
-          </Link>
-        </Button>
+        <h1 className="text-2xl font-bold">Ensaios</h1>
       </div>
 
       <div className="grid gap-4">

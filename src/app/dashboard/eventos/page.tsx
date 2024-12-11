@@ -36,6 +36,12 @@ export default async function EventosPage() {
             <p className="mt-1">{evento.local.nome}</p>
           </Link>
         ))}
+
+        {eventos.length === 0 && (
+          <div className="col-span-full text-center py-6 text-muted-foreground">
+            Nenhum evento encontrado
+          </div>
+        )}
       </div>
     </main>
   )

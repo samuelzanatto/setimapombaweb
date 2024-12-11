@@ -33,8 +33,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { useAuth } from '@/hooks/useAuth'
-import socket from '@/lib/socketClient'
 
 const userEditSchema = z.object({
   username: z.string().min(3, 'Mínimo 3 caracteres'),
@@ -82,45 +80,6 @@ export default function UserManager() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const { user } = useAuth()
-
-  useEffect(() => {
-    if (user) {
-      const connectSocket = () => {
-        console.log('[Client] Iniciando conexão do socket para usuário:', user.id)
-        
-        if (!socket.connected) {
-          socket.connect()
-          socket.emit('user-connect', user.id)
-        }
-      }
-
-      connectSocket()
-
-      // Reconectar em caso de desconexão
-      socket.on('connect', () => {
-        console.log('[Client] Socket reconectado')
-        socket.emit('user-connect', user.id)
-      })
-      
-      socket.on('user-status-change', ({ userId, online }) => {
-        console.log('[Client] Recebido evento user-status-change:', { userId, online })
-        setUsers(prevUsers => 
-          prevUsers.map(u => u.id === userId ? { ...u, online } : u)
-        )
-      })
-
-      // Limpar socket ao desmontar
-      return () => {
-        if (socket.connected) {
-          socket.emit('user-disconnect', user.id)
-          socket.disconnect()
-        }
-        socket.off('connect')
-        socket.off('user-status-change')
-      }
-    }
-  }, [user])
   
   // Create User Form
   const {

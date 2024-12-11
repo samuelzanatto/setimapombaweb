@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { authService, User } from '@/services/auth.service';
+import { useRouter } from 'next/navigation';
 
 type AuthStore = {
   user: User | null;
@@ -8,51 +9,29 @@ type AuthStore = {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  isAuthenticated: boolean;
 };
 
 export const useAuth = create<AuthStore>((set) => ({
   user: null,
   isLoading: false,
   error: null,
+  isAuthenticated: false,
 
   login: async (username: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Credenciais inválidas');
-      }
-
-      const data = await response.json();
-      console.log('Login response:', data); // Debug
-
-      // Garantir que os tokens sejam salvos
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-
-      set({ 
-        user: data.user, 
-        isLoading: false 
-      });
-
-      // Verificar se os tokens foram salvos
-      console.log('Tokens saved:', {
-        access: localStorage.getItem('accessToken'),
-        refresh: localStorage.getItem('refreshToken')
-      });
-
+      const user = await authService.login(username, password);
+      set({ user, isLoading: false, isAuthenticated: true });
+      
+      // Forçar redirecionamento com reload completo
+      window.location.replace('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Erro ao fazer login', 
-        isLoading: false 
+        isLoading: false,
+        isAuthenticated: false
       });
       throw error;
     }
@@ -60,16 +39,16 @@ export const useAuth = create<AuthStore>((set) => ({
 
   logout: () => {
     authService.logout();
-    set({ user: null, error: null });
+    set({ user: null, error: null, isAuthenticated: false });
+    window.location.href = '/login';
   },
 
   checkAuth: async () => {
     set({ isLoading: true });
     try {
       const token = authService.getAccessToken();
-      console.log('checkAuth token:', token);
       if (!token) {
-        set({ user: null, isLoading: false });
+        set({ user: null, isLoading: false, isAuthenticated: false });
         return;
       }
       
@@ -77,18 +56,15 @@ export const useAuth = create<AuthStore>((set) => ({
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log('ME response status:', response.status);
       if (!response.ok) {
-        const errorData = await response.json();
-        console.log('ME error:', errorData);
         throw new Error();
       }
       
       const data = await response.json();
-      set({ user: data.user, isLoading: false });
+      set({ user: data.user, isLoading: false, isAuthenticated: true });
     } catch (error) {
       authService.logout();
-      set({ user: null, isLoading: false });
+      set({ user: null, isLoading: false, isAuthenticated: false });
     }
   }
 }));

@@ -54,6 +54,10 @@ export default function CultosPage() {
 
   return (
     <main className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Cultos</h1>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cultos.map(culto => (
           <Link href={`/dashboard/cultos/${culto.id}`} key={culto.id}>
@@ -78,6 +82,12 @@ export default function CultosPage() {
             </Card>
           </Link>
         ))}
+
+        {cultos.length === 0 && (
+          <div className="col-span-full text-center py-6 text-muted-foreground">
+            Nenhum culto encontrado
+          </div>
+        )}
       </div>
     </main>
   )

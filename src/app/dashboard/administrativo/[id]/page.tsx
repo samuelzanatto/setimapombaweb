@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react'
 import { VideoPlayer } from '../../../components/VideoPlayer'
-import { socket } from '@/lib/socketClient'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Heart, MessageCircle, Users } from 'lucide-react'
@@ -28,39 +27,6 @@ export default function LivePage({ params }: { params: Promise<{ id: string }> }
   const [novaLeitura, setNovaLeitura] = useState('')
   const [minutoLeitura, setMinutoLeitura] = useState('')
   const [pedidosOracao, setPedidosOracao] = useState<any[]>([])
-
-  useEffect(() => {
-    socket.emit('join-live', id)
-
-    socket.on('viewer-list', (viewerList) => {
-      console.log('Viewers atualizados:', viewerList)
-      setViewers(viewerList)
-    })
-
-    socket.on('new-message', (message) => {
-      setMensagens((prev) => [...prev, message])
-    })
-
-    socket.on('new-pedido', (pedido) => {
-      setPedidosOracao((prev) => [...prev, pedido])
-    })
-
-    return () => {
-      socket.off('viewer-count')
-      socket.off('new-message')
-      socket.off('new-pedido')
-    }
-  }, [id])
-
-  const toggleOferta = () => {
-    const newStatus = !ofertaAtiva
-    setOfertaAtiva(newStatus)
-    socket.emit('toggle-oferta', { liveId: params.id, active: newStatus })
-  }
-
-  const addLeitura = (texto: string, minuto: string) => {
-    socket.emit('add-leitura', { liveId: params.id, texto, minuto })
-  }
 
   const handleEmbedError = () => {
     setEmbedError(true)
