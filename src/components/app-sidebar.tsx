@@ -16,8 +16,6 @@ import {
   Ticket
 } from "lucide-react"
 
-import Logo from "../../public/logo.png"
-
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -126,7 +124,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div className="flex size-8 items-center justify-center text-sidebar-primary-foreground">
-                  <Image src={Logo} width={100} height={100} alt="Logo" />
+                  <Image src="/logo.png" width={100} height={100} alt="Logo" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Ministério</span>

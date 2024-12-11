@@ -69,27 +69,28 @@ export default function EventManager() {
     }
   })
 
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/eventos')
+      const data = await response.json()
+      setEventos(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('Erro ao carregar eventos:', error)
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar eventos",
+        description: "Por favor, tente novamente mais tarde."
+      })
+      setEventos([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
-
-  const fetchData = async () => {
-    try {
-      const [locaisRes, eventosRes] = await Promise.all([
-        fetch('/api/locais'),
-        fetch('/api/eventos')
-      ])
-      
-      setLocais(locaisRes)
-      setEventos(eventosRes)
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Erro ao carregar dados"
-      })
-    }
-  }
 
   const onSubmit = async (data: EventoForm) => {
     try {
@@ -184,7 +185,7 @@ export default function EventManager() {
                         <SelectValue placeholder="Selecione um local" />
                       </SelectTrigger>
                       <SelectContent>
-                        {locais.map(local => (
+                        {Array.isArray(locais) && locais.map(local => (
                           <SelectItem key={local.id} value={local.id.toString()}>
                             {local.nome}
                           </SelectItem>
@@ -226,7 +227,7 @@ export default function EventManager() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {eventos.map((evento) => (
+          {Array.isArray(eventos) && eventos.map(evento => (
             <TableRow key={evento.id}>
               <TableCell>{evento.id}</TableCell>
               <TableCell>{evento.titulo}</TableCell>
