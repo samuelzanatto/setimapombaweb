@@ -8,58 +8,72 @@ const youtube = google.youtube({
 
 export async function GET() {
   try {
-    // Buscar live atual no YouTube
+    // Busca todos os vídeos recentes do canal, sem filtro de eventType
     const response = await youtube.search.list({
       part: ['snippet'],
       channelId: process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID,
-      eventType: 'live',
       type: ['video'],
-      maxResults: 1
+      order: 'date',
+      maxResults: 5 // Aumenta para pegar mais vídeos recentes
     })
 
-    const currentLive = response.data.items?.[0]
+    // Para cada vídeo, verifica detalhes do streaming
+    for (const item of response.data.items || []) {
+      const videoDetails = await youtube.videos.list({
+        part: ['snippet', 'liveStreamingDetails'],
+        id: [item.id.videoId]
+      })
 
-    if (currentLive?.id?.videoId) {
-      // Buscar ou criar live no banco
-      const live = await prisma.live.upsert({
-        where: {
-          youtubeId: currentLive.id.videoId
-        },
-        update: {
-          title: currentLive.snippet?.title || '',
-          isActive: true
-        },
-        create: {
-          youtubeId: currentLive.id.videoId,
-          title: currentLive.snippet?.title || '',
-          isActive: true
-        },
-        include: {
-          leituras: true,
-          mensagens: true,
-          pedidosOracao: true,
-          viewerSessions: {
-            where: {
-              endedAt: null
+      const videoData = videoDetails.data.items?.[0]
+      
+      // Verifica se é uma live (ativa ou agendada)
+      if (videoData?.liveStreamingDetails) {
+        const isLive = videoData.snippet?.liveBroadcastContent === 'live'
+        
+        if (isLive) {
+          const live = await prisma.live.upsert({
+            where: { youtubeId: item.id.videoId },
+            update: {
+              title: videoData.snippet?.title || '',
+              isActive: true
+            },
+            create: {
+              youtubeId: item.id.videoId,
+              title: videoData.snippet?.title || '',
+              isActive: true
+            },
+            include: {
+              leituras: true,
+              pedidosOracao: true,
+              viewerSessions: {
+                where: { endedAt: null }
+              }
             }
-          }
-        }
-      })
+          })
 
-      return Response.json({
-        liveId: live.youtubeId,
-        title: live.title,
-        viewers: live.viewerSessions.length,
-        ofertaAtiva: live.ofertaAtiva,
-        leituras: live.leituras,
-        mensagens: live.mensagens,
-        pedidosOracao: live.pedidosOracao
-      })
+          return Response.json({
+            liveId: live.youtubeId,
+            title: live.title,
+            viewers: live.viewerSessions.length,
+            ofertaAtiva: false,
+            leituras: live.leituras,
+            pedidosOracao: live.pedidosOracao
+          })
+        }
+      }
     }
 
+    // Se não encontrou nenhuma live ativa
     return Response.json({ liveId: null })
+
   } catch (error) {
     console.error('Erro ao buscar live atual:', error)
-    return Response.json({ error: 'Falha ao buscar live atual' }, { status: 500 })
+    return new Response(
+      JSON.stringify({ 
+        error: 'Falha ao buscar live atual',
+        details: error.message
+      }),
+      { status: 500 }
+    )
   }
 }

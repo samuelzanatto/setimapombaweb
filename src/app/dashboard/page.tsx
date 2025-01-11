@@ -34,26 +34,47 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     async function checkCurrentLive() {
       try {
+        console.log('Iniciando chamada à API...')
         const response = await fetch('/api/lives/current')
-        const data = await response.json()
         
-        if (data.liveId) {
-          setCurrentLiveId(data.liveId)
-          setViewerCount(data.viewers)
-          setOfertaAtiva(data.ofertaAtiva)
-          setLeituras(data.leituras)
-          setPedidosOracao(data.pedidosOracao)
-          setVideoType('live')
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const responseText = await response.text()
+        console.log('Resposta bruta:', responseText)
+        
+        if (!responseText) {
+          console.log('Resposta vazia recebida')
+          return
+        }
+      
+        try {
+          const data = JSON.parse(responseText)
+          console.log('Dados parseados:', data)
+          
+          if (data.liveId) {
+            setCurrentLiveId(data.liveId)
+            setViewerCount(data.viewers || 0)
+            setOfertaAtiva(data.ofertaAtiva || false)
+            setLeituras(data.leituras || [])
+            setPedidosOracao(data.pedidosOracao || [])
+            setVideoType('live')
+          }
+        } catch (parseError) {
+          console.error('Erro ao parsear JSON:', parseError)
+          setCurrentLiveId(null)
         }
       } catch (error) {
         console.error('Erro ao buscar live atual:', error)
+        setCurrentLiveId(null)
       } finally {
         setIsLoading(false)
       }
     }
   
     checkCurrentLive()
-    const interval = setInterval(checkCurrentLive, 60000) // Verificar a cada minuto
+    const interval = setInterval(checkCurrentLive, 60000)
   
     return () => clearInterval(interval)
   }, [])
