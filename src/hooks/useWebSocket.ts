@@ -28,8 +28,10 @@ export function useWebSocket(user: User | null) {
     const connectWebSocket = () => {
       if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-      const wsUrl = `ws://${window.location.hostname}:${process.env.NEXT_PUBLIC_WS_PORT || 8080}/ws`;
-      console.log('[WebSocket] Tentando conectar em:', wsUrl);
+      const wsUrl = process.env.NODE_ENV === 'production'
+      ? `wss://websocket-server.onrender.com/ws`
+      : `ws://localhost:8080/ws`;
+      console.log('[WebSocket] Conectando em:', wsUrl);
       
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
