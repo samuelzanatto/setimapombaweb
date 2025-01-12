@@ -1,9 +1,11 @@
 {
   "name": "websocket-server",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "npx prisma generate",
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
     "start": "node index.js"
   },
   "dependencies": {
