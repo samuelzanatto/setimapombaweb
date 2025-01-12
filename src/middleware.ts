@@ -8,7 +8,8 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/refresh',
   '/api/auth/me',
-  '/favicon.ico'
+  '/favicon.ico',
+  '/ws'
 ];
 
 const JWT_SECRET = process.env.JWT_SECRET || 'seu-secret-key-seguro';
@@ -23,19 +24,16 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value || 
                 request.headers.get('Authorization')?.split(' ')[1];
   
-  try {
-    if (!token) {
-      throw new Error('Token não fornecido');
+  if (!token) {
+    console.log('[Middleware] Token não encontrado');
+    if (pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/login', request.url));
     }
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  }
 
-    // Criar chave secreta UTF-8
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    
-    // Verificar token
-    await jose.jwtVerify(token, secret);
-    
-    return NextResponse.next();
-    
+  try {
+      return NextResponse.next();
   } catch (error) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(

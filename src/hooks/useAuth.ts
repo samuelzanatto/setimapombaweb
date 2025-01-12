@@ -22,15 +22,17 @@ export const useAuth = create<AuthStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const user = await authService.login(username, password);
-      set({ user, isLoading: false, isAuthenticated: true });
-      
-      // Forçar redirecionamento com reload completo
-      window.location.replace('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
       set({ 
-        error: error instanceof Error ? error.message : 'Erro ao fazer login', 
+        user, 
+        isLoading: false, 
+        error: null,
+        isAuthenticated: true 
+      });
+    } catch (error) {
+      set({ 
+        user: null, 
         isLoading: false,
+        error: 'Erro ao fazer login',
         isAuthenticated: false
       });
       throw error;
@@ -48,7 +50,11 @@ export const useAuth = create<AuthStore>((set) => ({
     try {
       const token = authService.getAccessToken();
       if (!token) {
-        set({ user: null, isLoading: false, isAuthenticated: false });
+        set({ 
+          user: null, 
+          isLoading: false, 
+          isAuthenticated: false 
+        });
         return;
       }
       
@@ -61,7 +67,11 @@ export const useAuth = create<AuthStore>((set) => ({
       }
       
       const data = await response.json();
-      set({ user: data.user, isLoading: false, isAuthenticated: true });
+      set({ 
+        user: data.user, 
+        isLoading: false, 
+        isAuthenticated: true 
+      });
     } catch (error) {
       authService.logout();
       set({ user: null, isLoading: false, isAuthenticated: false });

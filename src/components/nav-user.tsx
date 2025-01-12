@@ -29,14 +29,37 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
 export function NavUser() {
-  const { user, logout, checkAuth } = useAuth()
+  const { user, logout, checkAuth, isLoading } = useAuth()
   const router = useRouter()
   const { isMobile } = useSidebar()
 
   useEffect(() => {
-    console.log('NavUser mounted, checking auth...')
-    checkAuth()
-  }, [checkAuth])
+    const initAuth = async () => {
+      try {
+        console.log('[NavUser] Verificando tokens...');
+        const token = localStorage.getItem('accessToken');
+        const userId = localStorage.getItem('userId');
+        
+        if (!token || !userId) {
+          console.log('[NavUser] Tokens não encontrados, redirecionando...');
+          router.push('/login');
+          return;
+        }
+
+        console.log('[NavUser] Iniciando checkAuth...');
+        await checkAuth();
+      } catch (error) {
+        console.error('[NavUser] Erro na autenticação:', error);
+        router.push('/login');
+      }
+    };
+
+    initAuth();
+  }, [checkAuth, router]);
+
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
 
   console.log('NavUser render:', { user })
 

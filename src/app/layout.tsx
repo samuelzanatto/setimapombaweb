@@ -5,7 +5,7 @@ import "./globals.css";
 const montserrat = Montserrat({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "A Sétima Pomba",
+  title: "Ministério A Sétima Pomba",
   description: "Ministério A Sétima Pomba",
 };
 

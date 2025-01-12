@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { Separator } from "@/components/ui/separator"
-import { 
-    Tabs, 
-    TabsList, 
-    TabsTrigger 
-} from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import { ChevronLeft } from "lucide-react"
 
 export default function BibliaPage() {
     const [books, setBooks] = useState<Book[]>([])
@@ -17,6 +15,8 @@ export default function BibliaPage() {
     const [selectedChapter, setSelectedChapter] = useState<number>(1)
     const [verses, setVerses] = useState<Verse[]>([])
     const [loading, setLoading] = useState(true)
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+    const [showVerses, setShowVerses] = useState(false)
 
     useEffect(() => {
         async function loadBooks() {
@@ -57,9 +57,20 @@ export default function BibliaPage() {
         }
     }, [selectedBook, selectedChapter])
 
-    return (
-        <main className="flex flex-col w-full h-full pb-10">
-          {loading ? (
+    const handleBookSelect = (book: string) => {
+        setSelectedBook(book)
+        setIsDrawerOpen(true)
+        setShowVerses(false)
+    }
+
+    const handleChapterSelect = (chapter: number) => {
+        setSelectedChapter(chapter)
+        setIsDrawerOpen(false)
+        setShowVerses(true)
+    }
+
+    if (loading) {
+        return (
             <div className="w-full h-full p-4">
               <div className="space-y-4">
                 {/* Skeleton para os livros */}
@@ -92,72 +103,76 @@ export default function BibliaPage() {
                 </div>
               </div>
             </div>
-          ) : (
-            <Tabs 
-            value={selectedBook} 
-            onValueChange={setSelectedBook} 
-            defaultValue={books.length > 0 ? books[0].abbrev.pt : ""}
-            className="w-full h-full"
-            >
-            <header className="w-full h-32">
-                <TabsList className="flex flex-wrap gap-1 bg-transparent">
-                  {books.map((book) => (
-                    <TabsTrigger 
-                      key={`${book.abbrev.pt}-${book.id}`}
-                      value={book.abbrev.pt}
-                      className="text-xs min-w-16"
-                    >
-                      {book.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-            </header>
+        )
+    }
 
-            <Separator />
+    const selectedBookData = books.find(b => b.abbrev.pt === selectedBook)
 
-            <div className="flex flex-row w-full h-full items-center justify-center">
-                <aside className="w-1/3 h-full">
-                  <ScrollArea className="h-[calc(80vh-4rem)] p-4">
-                    {selectedBook && books.find(b => b.abbrev.pt === selectedBook)?.chapters && (
-                      <div className="grid grid-cols-5 gap-2">
-                        {Array.from(
-                          { length: books.find(b => b.abbrev.pt === selectedBook)!.chapters },
-                          (_, i) => i + 1
-                        ).map((chapter) => (
-                          <Button
-                            key={chapter}
-                            variant={selectedChapter === chapter ? "default" : "outline"}
-                            onClick={() => setSelectedChapter(chapter)}
-                          >
-                            {chapter}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </aside>
-
-                <Separator orientation="vertical" />
-
-                <article className="w-2/3 px-6">
-                    <ScrollArea className="h-[calc(84vh-4rem)] px-2 mt-[-7rem]">
-                        <div className="pr-10">
-                          {verses.map((verse) => (
-                            <p 
-                              key={verse.number} 
-                              id={`verse-${verse.number}`}
-                              className="mb-4"
+    return (
+        <main className="flex flex-col w-full h-full pb-10">
+            {!showVerses ? (
+                <div className="w-full p-4">
+                    <h2 className="text-2xl font-bold mb-4">Selecione um Livro</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                        {books.map((book) => (
+                            <Button
+                                key={book.abbrev.pt}
+                                variant={selectedBook === book.abbrev.pt ? "default" : "outline"}
+                                onClick={() => handleBookSelect(book.abbrev.pt)}
+                                className="w-full text-xs"
                             >
-                              <span className="font-bold mr-2">{verse.number}</span>
-                              {verse.text}
-                            </p>
-                          ))}
+                                {book.name}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <div className="w-full h-full">
+                    <div className="p-4">
+                        <Button variant="outline" onClick={() => setShowVerses(false)} className="mb-4">
+                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            Voltar para Livros
+                        </Button>
+                        <h2 className="text-2xl font-bold">
+                            {selectedBookData?.name} {selectedChapter}
+                        </h2>
+                    </div>
+                    <ScrollArea className="h-[calc(100vh-12rem)] px-4">
+                        <div className="pr-4">
+                            {verses.map((verse) => (
+                                <p key={verse.number} className="mb-4">
+                                    <span className="font-bold mr-2">{verse.number}</span>
+                                    {verse.text}
+                                </p>
+                            ))}
                         </div>
                     </ScrollArea>
-                </article>
-            </div>
-            </Tabs>
+                </div>
             )}
+
+            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                <DrawerContent>
+                    <DrawerHeader>
+                        <DrawerTitle>Selecione o Capítulo - {selectedBookData?.name}</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="p-4">
+                        <div className="grid grid-cols-6 gap-2">
+                            {selectedBookData && Array.from(
+                                { length: selectedBookData.chapters },
+                                (_, i) => i + 1
+                            ).map((chapter) => (
+                                <Button
+                                    key={chapter}
+                                    variant={selectedChapter === chapter ? "default" : "outline"}
+                                    onClick={() => handleChapterSelect(chapter)}
+                                >
+                                    {chapter}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                </DrawerContent>
+            </Drawer>
         </main>
     )
 }

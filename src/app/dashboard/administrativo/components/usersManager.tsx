@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useToast } from "@/hooks/use-toast"
 import {
   Table,
@@ -80,8 +80,8 @@ export default function UserManager() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const wsRef = useRef<WebSocket | null>(null)
   
-  // Create User Form
   const {
     control: createControl,
     register: registerCreate,
@@ -92,7 +92,6 @@ export default function UserManager() {
     resolver: zodResolver(userCreateSchema)
   })
 
-  // Edit User Form
   const {
     control: editControl,
     register: registerEdit,
@@ -103,7 +102,6 @@ export default function UserManager() {
     resolver: zodResolver(userEditSchema)
   })
 
-  // Change Password Form
   const {
     register: registerPassword,
     handleSubmit: handlePasswordSubmit,
@@ -114,7 +112,39 @@ export default function UserManager() {
   })
 
   useEffect(() => {
-    fetchUsers()
+    const wsUrl = `ws://${window.location.hostname}:${process.env.NEXT_PUBLIC_WS_PORT || 8080}/ws`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('[UsersManager] WebSocket conectado');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('[UsersManager] Mensagem recebida:', event.data);
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'status_change') {
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user.id === data.userId 
+              ? { ...user, online: data.online }
+              : user
+          )
+        );
+      }
+    };
+
+    fetchUsers();
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     fetchCargos()
   }, [])
 
@@ -122,9 +152,11 @@ export default function UserManager() {
     try {
       const response = await fetch('/api/users')
       const data = await response.json()
-      console.log('[Client] Usuários carregados:', 
-        data.map(u => ({id: u.id, online: u.online}))
-      )
+      console.log('[Client] Usuários carregados:', data.map(u => ({
+        id: u.id, 
+        username: u.username,
+        online: u.online
+      })))
       setUsers(data)
     } catch (error) {
       console.error('[Client] Erro ao buscar usuários:', error)
@@ -349,7 +381,6 @@ export default function UserManager() {
         </Dialog>
       </div>
 
-      {/* Edit User Dialog */}
       <Dialog open={editUserOpen} onOpenChange={setEditUserOpen}>
         <DialogContent>
           <DialogHeader>
@@ -436,7 +467,6 @@ export default function UserManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Change Password Dialog */}
       <Dialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
         <DialogContent>
           <DialogHeader>

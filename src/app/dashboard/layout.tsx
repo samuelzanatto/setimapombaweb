@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import "../globals.css";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Toaster } from "@/components/ui/toaster";
+import DashboardLayoutClient from "./layout-client";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -14,16 +11,5 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <SidebarProvider>
-      <div className="flex w-screen overflow-hidden">
-      <AppSidebar />
-      <main className="w-full p-3 space-y-2">
-        <SidebarTrigger className="" />
-        {children}
-      </main>
-      <Toaster />
-      </div>
-    </SidebarProvider>
-  );
+  return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 }
