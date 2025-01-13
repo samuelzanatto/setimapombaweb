@@ -33,6 +33,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import { useAuth } from '@/hooks/useAuth'
 
 const userEditSchema = z.object({
   username: z.string().min(3, 'Mínimo 3 caracteres'),
@@ -80,7 +82,7 @@ export default function UserManager() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const wsRef = useRef<WebSocket | null>(null)
+  const { user } = useAuth()
   
   const {
     control: createControl,
@@ -111,40 +113,21 @@ export default function UserManager() {
     resolver: zodResolver(passwordChangeSchema)
   })
 
-  useEffect(() => {
-    const wsUrl = `ws://${window.location.hostname}:${process.env.NEXT_PUBLIC_WS_PORT || 8080}/ws`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+  const handleStatusChange = (userId: number, online: boolean) => {
+    console.log('[UsersManager] Atualizando status:', userId, online);
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId 
+          ? { ...user, online }
+          : user
+      )
+    );
+  };
 
-    ws.onopen = () => {
-      console.log('[UsersManager] WebSocket conectado');
-    };
-
-    ws.onmessage = (event) => {
-      console.log('[UsersManager] Mensagem recebida:', event.data);
-      const data = JSON.parse(event.data);
-      
-      if (data.type === 'status_change') {
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user.id === data.userId 
-              ? { ...user, online: data.online }
-              : user
-          )
-        );
-      }
-    };
-
-    fetchUsers();
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
+  useWebSocket(user, handleStatusChange);
 
   useEffect(() => {
+    fetchUsers()
     fetchCargos()
   }, [])
 

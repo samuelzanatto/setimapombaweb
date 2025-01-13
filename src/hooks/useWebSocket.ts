@@ -9,7 +9,7 @@ type User = {
   email?: string;
 };
 
-export function useWebSocket(user: User | null) {
+export function useWebSocket(user: User | null, onStatusChange?: (userId: number, online: boolean) => void) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
@@ -28,14 +28,28 @@ export function useWebSocket(user: User | null) {
     const connectWebSocket = () => {
       if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-      const wsUrl = process.env.NODE_ENV === 'production'
-        ? 'wss://websocket-server-kq65.onrender.com'
-        : 'ws://localhost:8080';
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 
+        (process.env.NODE_ENV === 'production'
+          ? 'wss://websocket-server-kq65.onrender.com'
+          : 'ws://localhost:8080');
       
       console.log('[WebSocket] Tentando conectar em:', wsUrl);
       
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('[WebSocket] Mensagem recebida:', data);
+          
+          if (data.type === 'status_change') {
+            onStatusChange?.(data.userId, data.online);
+          }
+        } catch (err) {
+          console.error('[WebSocket] Erro ao processar mensagem:', err);
+        }
+      };
 
       ws.onopen = () => {
         console.log('[WebSocket] Conexão estabelecida');
@@ -81,5 +95,5 @@ export function useWebSocket(user: User | null) {
         wsRef.current.close(1000, 'Component unmounted');
       }
     };
-  }, [user?.id]);
+  }, [user?.id, onStatusChange]);
 }
