@@ -10,16 +10,16 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(cors({
-    origin: process.env.NEXT_PUBLIC_APP_URL,
-    methods: ['GET', 'POST']
-}));
+app.use(cors());
 
 const server = createServer(app);
 const wss = new WebSocketServer({ 
     server,
-    path: '/ws',
     clientTracking: true
+});
+
+app.get('/', (req, res) => {
+    res.send('Servidor WebSocket está rodando');
 });
 
 const userConnections = new Map();
