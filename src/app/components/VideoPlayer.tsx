@@ -8,6 +8,7 @@ import 'videojs-youtube'
 
 interface VideoPlayerProps {
   videoId: string
+  userEmail: string
   isLive?: boolean
   onError?: () => void
 }
@@ -36,12 +37,12 @@ const youtubeConfig: YouTubeOptions = {
   enablejsapi: 1
 }
 
-export const VideoPlayer = ({ videoId, isLive = false }: VideoPlayerProps) => {
+export const VideoPlayer = ({ videoId, isLive = false, userEmail }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLDivElement | null>(null)
   const playerRef = useRef<any>(null)
 
   useEffect(() => {
-    if (!videoRef.current || !videoId) return
+    if (!videoRef.current || !videoId || !userEmail) return;
 
     if (playerRef.current) {
       playerRef.current.dispose()
@@ -87,7 +88,7 @@ export const VideoPlayer = ({ videoId, isLive = false }: VideoPlayerProps) => {
       fill: true,
       sources: [{
         type: 'video/youtube',
-        src: `https://www.youtube.com/watch?v=${videoId}`
+        src: `https://www.youtube.com/embed/${videoId}?auth=${userEmail}`
       }],
       controlBar: isLive ? getLiveControlBar() : getVodControlBar(),
       youtube: {
@@ -120,7 +121,7 @@ export const VideoPlayer = ({ videoId, isLive = false }: VideoPlayerProps) => {
         playerRef.current = null
       }
     }
-  }, [videoId, isLive])
+  }, [videoId, isLive, userEmail])
 
   return (
     <div 
