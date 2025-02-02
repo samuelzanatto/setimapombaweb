@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const data = await request.json()
-    const { password, ...updateData } = data // Remove password do objeto de atualização
+    const { password, ...updateData } = data
 
     const user = await prisma.user.update({
       where: { id: Number(params.id) },

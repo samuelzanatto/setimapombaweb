@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
 export function useLives() {
@@ -22,4 +23,38 @@ export function useLives() {
     isLoading,
     error
   }
+}
+
+export function useCurrentLive() {
+  const [live, setLive] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchLive = async () => {
+    try {
+      const response = await fetch('/api/lives/current', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Falha ao buscar live');
+      
+      const data = await response.json();
+      console.log('[useLive] Live data:', data);
+      setLive(data.live);
+
+    } catch (error) {
+      console.error('[useLive] Error:', error);
+      setError(error as Error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLive();
+  }, []);
+
+  return { live, isLoading, error };
 }

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { authService, User } from '@/services/auth.service';
-import { useRouter } from 'next/navigation';
 
 type AuthStore = {
   user: User | null;

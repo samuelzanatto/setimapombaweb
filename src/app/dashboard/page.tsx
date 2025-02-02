@@ -14,10 +14,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { VideoPlayer } from '../components/VideoPlayer'
+import { useCurrentLive } from '@/hooks/useLives'
 
 export default function DashboardPage({ params }: { params: { id: string } }) {
   const [currentLiveId, setCurrentLiveId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [embedError, setEmbedError] = useState(false)
   const [viewerCount, setViewerCount] = useState(0)
   const [ofertaAtiva, setOfertaAtiva] = useState(false)
@@ -26,6 +26,13 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
   const [novoPedidoPara, setNovoPedidoPara] = useState('')
   const [novoPedidoMotivo, setNovoPedidoMotivo] = useState('')
   const [isLiveActive, setIsLiveActive] = useState(false)
+  const { live, isLoading, error } = useCurrentLive();
+
+  useEffect(() => {
+    console.log('[Dashboard] Live:', live);
+    console.log('[Dashboard] Loading:', isLoading);
+    console.log('[Dashboard] Error:', error);
+  }, [live, isLoading, error]);
 
   useEffect(() => {
     setIsLiveActive(!!currentLiveId)
@@ -68,8 +75,6 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
       } catch (error) {
         console.error('Erro ao buscar live atual:', error)
         setCurrentLiveId(null)
-      } finally {
-        setIsLoading(false)
       }
     }
   
@@ -127,12 +132,12 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
               <div className="flex items-center justify-center aspect-video mb-4 border rounded-lg">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
               </div>
-            ) : currentLiveId ? (
+            ) : live ? (
               <div className='mb-4'>
                 <VideoPlayer 
-                  videoId={currentLiveId} 
-                  isLive={true} 
-                  onError={() => setEmbedError(true)}
+                  videoId={live.id}
+                  userEmail={live.authorizedEmail}
+                  isLive={live.status === 'live'}
                 />
               </div>
             ) : (
@@ -142,7 +147,6 @@ export default function DashboardPage({ params }: { params: { id: string } }) {
                 </h2>
               </div>
             )}
-
             <div className='flex w-full h-52 gap-4 justify-between'>
             <Card className="relative w-full">
               <CardHeader>

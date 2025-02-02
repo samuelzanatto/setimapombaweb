@@ -7,39 +7,32 @@ import '@videojs/http-streaming'
 import 'videojs-youtube'
 
 interface VideoPlayerProps {
-  videoId: string
-  userEmail: string
-  isLive?: boolean
-  onError?: () => void
+  videoId: string;
+  isLive?: boolean;
+  userEmail: string;
 }
 
-interface YouTubeOptions {
-  controls: number
-  modestbranding: number
-  playsinline: number
-  rel: number
-  showinfo: number
-  iv_load_policy: number
-  autoplay: number
-  disablekb: number
-  enablejsapi: number
-}
-
-const youtubeConfig: YouTubeOptions = {
-  controls: 0,
-  modestbranding: 1,
-  playsinline: 1,
-  rel: 0,
-  showinfo: 0,
-  iv_load_policy: 3,
-  autoplay: 1,
-  disablekb: 0,
-  enablejsapi: 1
-}
+const youtubeConfig = {
+  techOrder: ['youtube'],
+  sources: [],
+  youtube: {
+    iv_load_policy: 1,
+    playsinline: 1,
+    customVars: {
+      control: 0,
+      fs: 1,
+      modestbranding: 1,
+      playsinline: 1,
+      rel: 0,
+      showinfo: 0,
+      autoplay: 1
+    }
+  }
+};
 
 export const VideoPlayer = ({ videoId, isLive = false, userEmail }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLDivElement | null>(null)
-  const playerRef = useRef<any>(null)
+  const playerRef = useRef(null)
 
   useEffect(() => {
     if (!videoRef.current || !videoId || !userEmail) return;
@@ -52,6 +45,8 @@ export const VideoPlayer = ({ videoId, isLive = false, userEmail }: VideoPlayerP
     const videoElement = document.createElement('video')
     videoElement.className = 'video-js vjs-big-play-centered'
     videoRef.current.appendChild(videoElement)
+
+    const embedUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
     const getLiveControlBar = () => ({
       playToggle: false,
@@ -76,30 +71,18 @@ export const VideoPlayer = ({ videoId, isLive = false, userEmail }: VideoPlayerP
     })
 
     const player = playerRef.current = videojs(videoElement, {
-      controls: true,
-      fluid: true,
-      autoplay: true,
-      muted: true,
-      bigPlayButton: !isLive,
-      liveui: isLive,
-      techOrder: ['youtube'],
-      responsive: true,
-      playsinline: true,
-      fill: true,
+      ...youtubeConfig,
       sources: [{
         type: 'video/youtube',
-        src: `https://www.youtube.com/embed/${videoId}?auth=${userEmail}`
+        src: embedUrl
       }],
       controlBar: isLive ? getLiveControlBar() : getVodControlBar(),
       youtube: {
-        customVars: {
-        ...youtubeConfig,
-        autoplay: 1
-        },
-        playerVars: {
-        ...youtubeConfig,
-        autoplay: 1
-        }
+        ...youtubeConfig.youtube,
+        ytControls: 2,
+        origin: window.location.origin,
+        enablePrivacyEnhancedMode: false,
+        authToken: userEmail
       }
     })
 
@@ -114,14 +97,14 @@ export const VideoPlayer = ({ videoId, isLive = false, userEmail }: VideoPlayerP
 
     return () => {
       if (videoRef.current) {
-        videoRef.current.innerHTML = ''
+        videoRef.current.innerHTML = '';
       }
       if (playerRef.current) {
-        playerRef.current.dispose()
-        playerRef.current = null
+        playerRef.current.dispose();
+        playerRef.current = null;
       }
-    }
-  }, [videoId, isLive, userEmail])
+    };
+  }, [videoId, isLive, userEmail]);
 
   return (
     <div 

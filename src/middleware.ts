@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
-import * as jose from 'jose';
 
 const PUBLIC_ROUTES = [
   '/login',
@@ -12,10 +11,11 @@ const PUBLIC_ROUTES = [
   '/ws'
 ];
 
-const JWT_SECRET = process.env.JWT_SECRET || 'seu-secret-key-seguro';
-
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  console.log('[Middleware] Path:', pathname);
+  console.log('[Middleware] Authorization:', request.headers.get('Authorization'));
   
   if (PUBLIC_ROUTES.includes(pathname)) {
     return NextResponse.next();
@@ -32,19 +32,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }
 
-  try {
-      return NextResponse.next();
-  } catch (error) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Não autorizado' }, 
-        { status: 401 }
-      );
-    }
-    
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
-  }
+  const response = NextResponse.next();
+  response.headers.set('Authorization', `Bearer ${token}`);
+
+  return response;
 }
 
 export const config = {
